@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -55,11 +56,15 @@ public class MainActivity extends AppCompatActivity {
         call.enqueue(new Callback<UserResponse>() {
             @Override
             public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
-                UserResponse userResponse=response.body();
-                name.setText(userResponse.name);
-                Picasso.get().load(userResponse.avatar_url).into(image);
-                repos.setText(userResponse.public_repos+"");
-                followers.setText(userResponse.followers+"");
+                if (response.code() < 400) {
+                    UserResponse userResponse = response.body();
+                    name.setText(userResponse.name);
+                    Picasso.get().load(userResponse.avatar_url).into(image);
+                    repos.setText(userResponse.public_repos + "");
+                    followers.setText(userResponse.followers + "");
+                } else {
+                    Toast.makeText(MainActivity.this, response.message(), Toast.LENGTH_LONG).show();
+                }
                 layout.setVisibility(View.VISIBLE);
                 progressBar.setVisibility(View.GONE);
             }
@@ -81,8 +86,43 @@ public class MainActivity extends AppCompatActivity {
     {
         Intent intent = new Intent(this,DetailsActivity.class);
         intent.putExtra("type","followers");
-        startActivity(intent);
+        startActivityForResult(intent,90);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode==4)
+        {
+            layout.setVisibility(View.GONE);
+            progressBar.setVisibility(View.VISIBLE);
+            final String nm=data.getStringExtra("name");
+            Retrofit.Builder builder=new Retrofit.Builder().baseUrl("https://api.github.com/users/").addConverterFactory(GsonConverterFactory.create());
+            Retrofit retrofit=builder.build();
+            UserService service=retrofit.create(UserService.class);
+            Call<UserResponse> call=service.getDetails(nm);
+            call.enqueue(new Callback<UserResponse>() {
+                @Override
+                public void onResponse(Call<UserResponse> call, Response<UserResponse> response) {
+                    if (response.code() < 400) {
+                        UserResponse userResponse = response.body();
+                        name.setText(userResponse.name);
+                        username.setText(nm);
+                        Picasso.get().load(userResponse.avatar_url).into(image);
+                        repos.setText(userResponse.public_repos + "");
+                        followers.setText(userResponse.followers + "");
+                    } else {
+                        Toast.makeText(MainActivity.this, response.message(), Toast.LENGTH_LONG).show();
+                    }
+                    layout.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.GONE);
+                }
 
+                @Override
+                public void onFailure(Call<UserResponse> call, Throwable t) {
+
+                }
+            });
+        }
     }
 }

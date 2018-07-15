@@ -6,4 +6,5 @@ public class UserResponse {
     int public_repos;
     int followers;
     String avatar_url;
+    String message;
 }

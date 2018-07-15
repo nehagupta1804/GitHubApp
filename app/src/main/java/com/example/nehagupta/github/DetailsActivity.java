@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -16,7 +17,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class DetailsActivity extends AppCompatActivity {
+public class DetailsActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
 
     ListView listview;
     ArrayList<String> titles=new ArrayList<>();
@@ -32,6 +33,7 @@ public class DetailsActivity extends AppCompatActivity {
         progressBar.setVisibility(View.VISIBLE);
         adapter = new ArrayAdapter<>(this,android.R.layout.simple_list_item_1,titles);
         listview.setAdapter(adapter);
+        listview.setOnItemClickListener(this);
         Intent intent =getIntent();
         String check=intent.getStringExtra("type");
         Retrofit.Builder builder=new Retrofit.Builder().baseUrl("https://api.github.com/users/").addConverterFactory(GsonConverterFactory.create());
@@ -86,4 +88,16 @@ public class DetailsActivity extends AppCompatActivity {
 
         }
     }
+    public void onItemClick(AdapterView<?> adapterView,View view,int position,long i)
+    {
+        String title=titles.get(position);
+        Intent intent=new Intent();
+        intent.putExtra("name",title);
+        setResult(4,intent);
+        finish();
+
+    }
+
+
+
 }
